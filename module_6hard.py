@@ -1,96 +1,92 @@
 class Figure:
-    __sides = []
-    __color = []
-    filled = False  # изначально незакрашена
+    sides_count = 0
 
-    def __init__(self, rgb, *side):  # палитра и стороны
-        self.color = list(rgb)
-        self.side = side[0]  # берём только первое значение
-        self.filled = True  # принята палитра (rgb), фигура закрашена
+    def __init__(self, color, *sides):
+        if not self.__is_valid_color(*color):
+            color = [0, 0, 0]
+        self.__color = list(color)
+
+        if not self.__is_valid_sides(*sides):
+            self.__sides = [1] * self.sides_count
+        else:
+            self.__sides = list(sides)
+
+        self.filled = False
 
     def get_color(self):
-        self.__color = self.color
-        self.filled = True
         return self.__color
 
-    def _is_valid_color(self, r, g, b):
-        self.r, self.g, self.b = r, g, b
-        if 0 <= self.r <= 255 and 0 <= self.g <= 255 and 0 <= self.b <= 255:
-            return True
-        else:
-            return False
-
     def set_color(self, r, g, b):
-        if self._is_valid_color(r, g, b):
-            self.color = [self.r, self.g, self.b]
-
-    def __is_valid_sides(self, *args):
-        for side in self.sides:
-            if len(self.sides) == self.sides_count and side > 0 and type(side) == int:
-                return True
-            else:
-                return False
-
-    def set_sides(self, *args):
-        massive_lst = []
-        self.sides = list(args)
-        if self.__is_valid_sides(self, *args):
-            self.get_sides()
-        else:
-            for i in range(self.sides_count):
-                massive_lst.append(self.side)
-                self.sides = massive_lst
-            self.get_sides()
+        if self.__is_valid_color(r, g, b):
+            self.__color = [r, g, b]
 
     def get_sides(self):
-        self.__sides = self.sides
         return self.__sides
 
+    def set_sides(self, *sides):
+        if self.__is_valid_sides(*sides):
+            self.__sides = list(sides)
+
     def __len__(self):
-        return self.side * self.sides_count
+        return sum(self.__sides)
+
+    def __is_valid_color(self, r, g, b):
+        return all(isinstance(i, int) and 0 <= i <= 255 for i in [r, g, b])
+
+    def __is_valid_sides(self, *sides):
+        return len(sides) == self.sides_count and all(isinstance(side, int) and side > 0 for side in sides)
 
 
 class Circle(Figure):
     sides_count = 1
-    __radius = None
 
-    def set_radius(self):
-        self.__radius = self.__len__() / (2 * 3.141569)
-        return self.__radius
+    def __init__(self, color, *sides):
+        super().__init__(color, *sides)
+        self.__radius = self.get_sides()[0] / (2 * 3.14159)
 
     def get_square(self):
-        self.set_radius()
-        #if isinstance (self.set_radius(), int):
-        return (self.set_radius ** 2) * 3.141569  # как в школе через радиус
+        return 3.14159 * (self.__radius ** 2)
+
+    def set_sides(self, *sides):
+        super().set_sides(*sides)
+        self.__radius = self.get_sides()[0] / (2 * 3.14159)
+
 
 class Triangle(Figure):
     sides_count = 3
-    __height = None
+
+    def __init__(self, color, *sides):
+        super().__init__(color, *sides)
+        self.__height = self.calculate_height()
+
+    def calculate_height(self):
+        s = sum(self.get_sides()) / 2
+        area = (s * (s - self.get_sides()[0]) * (s - self.get_sides()[1]) * (s - self.get_sides()[2])) ** 0.5
+        return 2 * area / self.get_sides()[0]
 
     def get_square(self):
-        if isinstance((self.side ** 2) * (3 ** 0.5) / 4, int):
-         return (self.side ** 2) * (3 ** 0.5) / 4
+        s = sum(self.get_sides()) / 2
+        return (s * (s - self.get_sides()[0]) * (s - self.get_sides()[1]) * (s - self.get_sides()[2])) ** 0.5
 
-    def set_height(self):
-        self.__height = self.side * (3 ** 0.5) / 2
-        # if isinstance(self.__height(), int):
-        return isinstance(self.__height, int)
+    def set_sides(self, *sides):
+        super().set_sides(*sides)
+        self.__height = self.calculate_height()
 
 
 class Cube(Figure):
     sides_count = 12
 
-    def set_side_lst(self):
-        set_side_lst = []
-        for i in range(self.sides_count):
-            set_side_lst.append(self.side)
-        self.__sides = set_side_lst
-        #if isinstance(self.__sides(), int):
-        return isinstance(self.__sides(), int)
+    def __init__(self, color, *sides):
+        if len(sides) != 1:
+            sides = [1]
+        super().__init__(color, *sides * 12)
 
     def get_volume(self):
-        #if isinstance(self.side(), int):
-        return isinstance( self.side ** 3, int)
+        return self.get_sides()[0] ** 3
+
+    def set_sides(self, *sides):
+        if len(sides) == 1:
+            super().set_sides(*sides * 12)
 
 
 circle1 = Circle((200, 200, 100), 10)  # (Цвет, стороны)
